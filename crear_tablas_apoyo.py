@@ -1,4 +1,7 @@
-from app.db.session import SessionLocal
+from app.db.base import Base
+from app.db.session import engine
+# Importar todos los modelos para que se creen las tablas
+import app.modelos
 from app.core.seguridad import get_password_hash
 
 def fill_roles(db):
@@ -65,3 +68,7 @@ def fill_cronogramas(db):
         db.add_all(cronogramas)
         db.commit()
         print("Cronogramas creados")
+
+if __name__ == "__main__":
+    Base.metadata.create_all(bind=engine)
+    print("¡Todas las tablas han sido creadas correctamente!")

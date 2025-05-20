@@ -6,6 +6,7 @@ class Convocatoria(Base):
     __tablename__ = 'convocatorias'
 
     id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String, nullable=False)
     tipo = Column(String)
     fecha_inicio = Column(DateTime)
     fecha_fin = Column(DateTime)

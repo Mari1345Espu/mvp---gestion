@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Proyectos - Investigador{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Mis Proyectos</h2>
+        </div>
+        <div class="col text-end">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoProyectoModal">
+                <i class="fas fa-plus"></i> Nuevo Proyecto
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="">Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="finalizado">Finalizado</option>
+                        <option value="en_revision">En Revisión</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="facultad" class="form-label">Facultad</label>
+                    <select class="form-select" id="facultad" name="facultad">
+                        <option value="">Todas</option>
+                        {% for facultad in facultades %}
+                        <option value="{{ facultad.id }}">{{ facultad.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="buscar" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="buscar" name="buscar" placeholder="Título o descripción...">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Proyectos -->
+    <div class="row">
+        {% for proyecto in proyectos %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ proyecto.titulo }}</h5>
+                    <span class="badge bg-{{ proyecto.estado.color }}">{{ proyecto.estado.nombre }}</span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ proyecto.resumen[:200] }}...</p>
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> Inicio: {{ proyecto.fecha_inicio.strftime('%d/%m/%Y') }}
+                        </small>
+                        <br>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-check"></i> Fin: {{ proyecto.fecha_fin.strftime('%d/%m/%Y') }}
+                        </small>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ proyecto.avance }}%">
+                            {{ proyecto.avance }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100">
+                        <a href="/investigador/proyectos/{{ proyecto.id }}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i> Ver Detalles
+                        </a>
+                        <a href="/investigador/proyectos/{{ proyecto.id }}/avances" class="btn btn-outline-success">
+                            <i class="fas fa-tasks"></i> Avances
+                        </a>
+                        <a href="/investigador/proyectos/{{ proyecto.id }}/cronograma" class="btn btn-outline-info">
+                            <i class="fas fa-calendar-alt"></i> Cronograma
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Nuevo Proyecto -->
+<div class="modal fade" id="nuevoProyectoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="nuevoProyectoForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="titulo" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="titulo" name="titulo" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="facultad" class="form-label">Facultad</label>
+                            <select class="form-select" id="facultad" name="facultad_id" required>
+                                {% for facultad in facultades %}
+                                <option value="{{ facultad.id }}">{{ facultad.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resumen" class="form-label">Resumen</label>
+                        <textarea class="form-control" id="resumen" name="resumen" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="objetivos" class="form-label">Objetivos</label>
+                        <textarea class="form-control" id="objetivos" name="objetivos" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="problematica" class="form-label">Problemática</label>
+                        <textarea class="form-control" id="problematica" name="problematica" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="nuevoProyectoForm" class="btn btn-primary">Crear Proyecto</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar el envío del formulario de nuevo proyecto
+    const form = document.getElementById('nuevoProyectoForm');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch('/api/v1/proyectos/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const error = await response.json();
+                alert('Error al crear el proyecto: ' + error.detail);
+            }
+        } catch (error) {
+            alert('Error al crear el proyecto');
+        }
+    });
+});
+</script>
+{% endblock %} 

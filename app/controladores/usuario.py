@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.db.session import get_db
 from app import esquemas, modelos
 from app.esquemas.usuario import Usuario, UsuarioCreate, UsuarioBase
 from app.modelos.usuario import Usuario
-from app.core.seguridad import get_password_hash
+from app.core.seguridad import get_password_hash, get_current_user
+import os
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -36,17 +38,46 @@ def leer_usuario(usuario_id: int, db: Session = Depends(get_db)):
     return usuario
 
 @router.post("/usuarios/", response_model=esquemas.Usuario)
-def crear_usuario(usuario: esquemas.UsuarioCreate, db: Session = Depends(get_db)):
-    hashed_password = get_password_hash(usuario.contraseña)
+async def crear_usuario(
+    nombre: str = Form(...),
+    correo: str = Form(...),
+    telefono: str = Form(...),
+    contraseña: str = Form(...),
+    foto: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
+    # Verificar si el correo ya existe
+    usuario_existente = db.query(modelos.Usuario).filter(modelos.Usuario.correo == correo).first()
+    if usuario_existente:
+        raise HTTPException(
+            status_code=400,
+            detail="El correo electrónico ya está registrado"
+        )
+
+    # Buscar el rol de 'Investigador'
+    rol_investigador = db.query(modelos.Rol).filter(modelos.Rol.nombre == "Investigador").first()
+    if not rol_investigador:
+        raise HTTPException(status_code=400, detail="No existe el rol 'Investigador'")
+    
+    hashed_password = get_password_hash(contraseña)
+    foto_url = None
+    if foto:
+        uploads_dir = os.path.join("app", "static", "uploads")
+        os.makedirs(uploads_dir, exist_ok=True)
+        file_ext = os.path.splitext(foto.filename)[1]
+        file_name = f"{correo.replace('@','_')}{file_ext}"
+        file_path = os.path.join(uploads_dir, file_name)
+        with open(file_path, "wb") as f:
+            f.write(await foto.read())
+        foto_url = f"/static/uploads/{file_name}"
+    
     db_usuario = modelos.Usuario(
-        correo=usuario.correo,
-        nombre=usuario.nombre,
+        correo=correo,
+        nombre=nombre,
         contraseña=hashed_password,
-        telefono=usuario.telefono,
-        foto=usuario.foto,
-        rol_id=getattr(usuario, 'rol_id', None),
-        estado_id=getattr(usuario, 'estado_id', None),
-        tipo_estado_id=getattr(usuario, 'tipo_estado_id', None)
+        telefono=telefono,
+        foto=foto_url,
+        rol_id=rol_investigador.id
     )
     db.add(db_usuario)
     db.commit()
@@ -78,3 +109,30 @@ def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db)):
     db.delete(db_usuario)
     db.commit()
     return db_usuario
+
+@router.put("/usuarios/me", response_model=esquemas.Usuario)
+async def actualizar_mi_perfil(
+    nombre: str = Form(...),
+    correo: str = Form(...),
+    telefono: str = Form(...),
+    foto: UploadFile = File(None),
+    db: Session = Depends(get_db),
+    current_user: modelos.Usuario = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    current_user.nombre = nombre
+    current_user.correo = correo
+    current_user.telefono = telefono
+    if foto:
+        uploads_dir = os.path.join("app", "static", "uploads")
+        os.makedirs(uploads_dir, exist_ok=True)
+        file_ext = os.path.splitext(foto.filename)[1]
+        file_name = f"{correo.replace('@','_')}{file_ext}"
+        file_path = os.path.join(uploads_dir, file_name)
+        with open(file_path, "wb") as f:
+            f.write(await foto.read())
+        current_user.foto = f"/static/uploads/{file_name}"
+    db.commit()
+    db.refresh(current_user)
+    return current_user

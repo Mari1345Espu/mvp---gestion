@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Administrador CTI{% endblock %}
+{% block navbar_items %}
+<li class="nav-item"><a class="nav-link active" href="/dashboard.html">Dashboard</a></li>
+<li class="nav-item"><a class="nav-link" href="/admin/usuarios.html">Usuarios</a></li>
+<li class="nav-item"><a class="nav-link" href="/admin/convocatorias.html">Convocatorias</a></li>
+<li class="nav-item"><a class="nav-link" href="/admin/proyectos.html">Proyectos</a></li>
+<li class="nav-item"><a class="nav-link" href="/admin/evaluadores.html">Evaluadores</a></li>
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h1>Bienvenido, Administrador CTI</h1>
+  <p>Este es tu panel principal. Desde aquí puedes gestionar usuarios, proyectos, convocatorias y reportes.</p>
+</div>
+{% endblock %}
+{% block extra_css %}<style>.text-udec-green{color:#008542;}</style>{% endblock %} 

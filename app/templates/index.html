@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Biblioteca Pública de Proyectos{% endblock %}
+
+{% block navbar_items %}
+<li class="nav-item"><a class="nav-link active" href="/">Biblioteca</a></li>
+<li class="nav-item"><a class="nav-link" href="/login">Iniciar Sesión</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-udec-green">Biblioteca Pública de Proyectos</h2>
+    <form class="row g-3 mb-4">
+        <div class="col-md-3">
+            <select class="form-select" name="convocatoria">
+                <option value="">Todas las convocatorias</option>
+                {% for c in convocatorias %}
+                <option value="{{ c.id }}">{{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="programa">
+                <option value="">Todos los programas</option>
+                {% for p in programas %}
+                <option value="{{ p.id }}">{{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="tipo">
+                <option value="">Todos los tipos</option>
+                {% for t in tipos %}
+                <option value="{{ t.id }}">{{ t.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-grid">
+            <button type="submit" class="btn btn-success">Filtrar</button>
+        </div>
+    </form>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for proyecto in proyectos %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-udec-green">{{ proyecto.nombre }}</h5>
+                    <p class="card-text">{{ proyecto.descripcion|truncate(120) }}</p>
+                    <span class="badge bg-primary">{{ proyecto.convocatoria.nombre }}</span>
+                    <span class="badge bg-secondary">{{ proyecto.programa.nombre }}</span>
+                    <span class="badge bg-info text-dark">{{ proyecto.tipo.nombre }}</span>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Fecha inicio: {{ proyecto.fecha_inicio }}</small>
+                    <a href="/proyectos/{{ proyecto.id }}" class="btn btn-outline-success btn-sm">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">No hay proyectos para mostrar.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.text-udec-green { color: #008542; }
+</style>
+{% endblock %} 

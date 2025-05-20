@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -46,7 +46,7 @@ class Estado(Base):
 
     impactos = relationship("Impacto", back_populates="estado")
 
-    #seguimientos = relationship("Seguimiento", back_populates="estado")
+    seguimientos = relationship("Seguimiento", back_populates="estado")
 
-    #seguimientos = relationship("Seguimiento", back_populates="estado")
+    tipos_proyecto = relationship('TipoProyecto', back_populates='estado')
     

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 0 24px #0001;
+        padding: 2.5rem 2rem;
+        text-align: center;
+    }
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid #e6fcf5;
+        margin-bottom: 1rem;
+        background: #f1f1f5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    {% if current_user.foto %}
+        <img src="{{ current_user.foto }}" alt="Foto de perfil" class="profile-img" id="profileImg">
+    {% else %}
+        <div class="profile-img d-flex align-items-center justify-content-center" style="font-size:3rem; color:#bbb;" id="profileImgDefault">
+            <i class="fa fa-user"></i>
+        </div>
+    {% endif %}
+    <h3 class="mb-2" id="nombrePerfil">{{ current_user.nombre }}</h3>
+    <p class="mb-1"><strong>Correo:</strong> <span id="correoPerfil">{{ current_user.correo }}</span></p>
+    <p class="mb-1"><strong>Teléfono:</strong> <span id="telefonoPerfil">{{ current_user.telefono }}</span></p>
+    <p class="mb-1"><strong>Rol:</strong> {{ current_user.rol.nombre if current_user.rol else '' }}</p>
+    <button class="btn btn-outline-primary mt-3" id="btnEditarPerfil" onclick="toggleEditForm()">Editar perfil</button>
+    <form id="editPerfilForm" class="mt-4 d-none" enctype="multipart/form-data">
+        <div class="mb-3">
+            <input type="text" class="form-control" id="editNombre" name="nombre" value="{{ current_user.nombre }}" required>
+        </div>
+        <div class="mb-3">
+            <input type="email" class="form-control" id="editCorreo" name="correo" value="{{ current_user.correo }}" required>
+        </div>
+        <div class="mb-3">
+            <input type="text" class="form-control" id="editTelefono" name="telefono" value="{{ current_user.telefono }}" required>
+        </div>
+        <div class="mb-3">
+            <input type="file" class="form-control" id="editFoto" name="foto" accept="image/*">
+        </div>
+        <button type="submit" class="btn btn-success w-100">Guardar cambios</button>
+        <div id="editPerfilError" class="alert alert-danger mt-3 d-none"></div>
+        <div id="editPerfilSuccess" class="alert alert-success mt-3 d-none"></div>
+    </form>
+</div>
+<script>
+function toggleEditForm() {
+    const form = document.getElementById('editPerfilForm');
+    form.classList.toggle('d-none');
+}
+
+document.getElementById('editPerfilForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = document.getElementById('editPerfilForm');
+    const formData = new FormData(form);
+    const errorDiv = document.getElementById('editPerfilError');
+    const successDiv = document.getElementById('editPerfilSuccess');
+    errorDiv.classList.add('d-none');
+    successDiv.classList.add('d-none');
+    try {
+        const response = await fetch('/api/v1/usuarios/me', {
+            method: 'PUT',
+            body: formData
+        });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('nombrePerfil').textContent = data.nombre;
+            document.getElementById('correoPerfil').textContent = data.correo;
+            document.getElementById('telefonoPerfil').textContent = data.telefono;
+            if (data.foto) {
+                document.getElementById('profileImg').src = data.foto;
+            }
+            successDiv.textContent = 'Perfil actualizado correctamente.';
+            successDiv.classList.remove('d-none');
+            form.classList.add('d-none');
+        } else {
+            const error = await response.json();
+            errorDiv.textContent = error.detail || 'Error al actualizar el perfil.';
+            errorDiv.classList.remove('d-none');
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Error de red o del servidor.';
+        errorDiv.classList.remove('d-none');
+    }
+});
+</script>
+{% endblock %} 

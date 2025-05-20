@@ -22,4 +22,7 @@ from .lineainvestigacion import LineaInvestigacion
 from .grupoinvestigacion import GrupoInvestigacion
 from .notificacion import Notificacion
 from .programa import Programa
+from .impacto import Impacto
+from .seguimiento import Seguimiento
+from .tipo_proyecto import TipoProyecto
 # Añade aquí más importaciones de modelos según sea necesario

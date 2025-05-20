@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestión de Proyectos{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --udec-green: #008542;
+            --udec-light: #f8f9fa;
+            --udec-dark: #222;
+            --udec-gray: #e9ecef;
+        }
+        body {
+            background: var(--udec-light);
+        }
+        .navbar-udec {
+            background: var(--udec-green);
+        }
+        .navbar-udec .navbar-brand, .navbar-udec .nav-link, .navbar-udec .navbar-text {
+            color: #fff !important;
+        }
+        .navbar-udec .nav-link.active {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .sidebar {
+            background: var(--udec-gray);
+            min-height: 100vh;
+        }
+        .alertas {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .logo-udec {
+            height: 40px;
+            margin-right: 10px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar institucional -->
+    <nav class="navbar navbar-expand-lg navbar-udec shadow-sm fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/static/img/logo.png" alt="Logo UdeC" class="logo-udec">
+                Observatorio UDEC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% block navbar_items %}
+                    <!-- Navbar dinámico según rol -->
+                    {% endblock %}
+                </ul>
+                {% if current_user %}
+                <div class="d-flex align-items-center ms-3 gap-2">
+                    <a href="/perfil" class="btn btn-outline-light btn-sm">Ver perfil</a>
+                    <button onclick="cerrarSesion()" class="btn btn-danger btn-sm">Cerrar sesión</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <!-- Espacio para alertas/notificaciones -->
+    <div class="alertas mt-5">
+        {% block alertas %}
+        <!-- Ejemplo de alerta: -->
+        {# <div class="alert alert-info alert-dismissible fade show" role="alert">¡Bienvenido!<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div> #}
+        {% endblock %}
+    </div>
+    <div class="container-fluid" style="padding-top: 80px;">
+        <div class="row">
+            {% block sidebar %}
+            <!-- Sidebar opcional para admin u otros roles -->
+            {% endblock %}
+            <main class="col">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    async function cerrarSesion() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                await fetch('/api/v1/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+            } catch (e) {}
+        }
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

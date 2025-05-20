@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -7,6 +7,7 @@ class TipoEstado(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String)
+    descripcion = Column(String)
 
     # Relaciones
     usuarios = relationship("Usuario", back_populates="tipo_estado")
@@ -31,4 +32,4 @@ class TipoEstado(Base):
     notificaciones = relationship("Notificacion", back_populates="tipo_estado")
     programas = relationship("Programa", back_populates="tipo_estado")
     impactos = relationship("Impacto", back_populates="tipo_estado")
-    #seguimientos = relationship("Seguimiento", back_populates="tipo_estado")
+    seguimientos = relationship("Seguimiento", back_populates="tipo_estado")

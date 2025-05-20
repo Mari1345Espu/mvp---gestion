@@ -1,7 +1,7 @@
 from .rol import Rol, RolCreate, RolBase
 from .usuario import Usuario, UsuarioCreate, UsuarioBase
 from .token import Token, TokenData
-from .proyecto import Proyecto, ProyectoCreate, ProyectoBase
+from .proyecto import Proyecto, ProyectoCreate, ProyectoBase, DashboardResponse, ReporteProyecto
 from .cronograma import Cronograma, CronogramaCreate, CronogramaBase
 from .recurso import Recurso, RecursoCreate, RecursoBase
 from .participante import Participante, ParticipanteCreate, ParticipanteBase

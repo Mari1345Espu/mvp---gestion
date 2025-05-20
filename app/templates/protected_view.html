@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Vista protegida</title>
+</head>
+<body>
+  <div id="protected-content"></div>
+  <script>
+    async function cargarVistaProtegida() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+      // Detecta la ruta actual
+      const path = window.location.pathname;
+      const resp = await fetch(path, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+      if (resp.ok) {
+        const html = await resp.text();
+        document.getElementById('protected-content').innerHTML = html;
+      } else if (resp.status === 401) {
+        window.location.href = '/login';
+      }
+    }
+    cargarVistaProtegida();
+  </script>
+</body>
+</html> 

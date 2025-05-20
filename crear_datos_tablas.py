@@ -3,6 +3,7 @@ from app.db.base import Base
 from app import modelos
 from sqlalchemy.orm import Session
 from app.core.seguridad import get_password_hash
+from datetime import datetime, timedelta
 
 def init_db():
     # Crear tablas
@@ -44,7 +45,13 @@ def init_db():
         # Crear roles
         from app.modelos.rol import Rol
         if not db.query(Rol).first():
-            roles = [Rol(nombre="Admin"), Rol(nombre="Usuario")]
+            roles = [
+                Rol(nombre="Administrador CTI"),
+                Rol(nombre="Asesor"),
+                Rol(nombre="Evaluador"),
+                Rol(nombre="Líder"),
+                Rol(nombre="Investigador")
+            ]
             db.add_all(roles)
             db.commit()
             print("Roles creados")
@@ -64,10 +71,13 @@ def init_db():
             hashed_password = get_password_hash("admin123")
             new_user = Usuario(
                 correo="admin@example.com",
-                nombre="Administrador",
+                nombre="Administrador CTI",
                 contraseña=hashed_password,
                 telefono="1234567890",
-                foto=None
+                foto=None,
+                rol_id=1,  # ID del rol Administrador CTI
+                estado_id=1,  # Activo
+                tipo_estado_id=1  # Activo
             )
             db.add(new_user)
             db.commit()
@@ -79,8 +89,22 @@ def init_db():
         from app.modelos.proyecto import Proyecto
         if not db.query(Proyecto).first():
             proyectos = [
-                Proyecto(nombre="Proyecto 1", descripcion="Descripción del proyecto 1"),
-                Proyecto(nombre="Proyecto 2", descripcion="Descripción del proyecto 2")
+                Proyecto(
+                    titulo="Proyecto 1",
+                    objetivos="Descripción del proyecto 1",
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1,  # Activo
+                    resumen="Resumen del proyecto 1",
+                    problematica="Problemática del proyecto 1"
+                ),
+                Proyecto(
+                    titulo="Proyecto 2",
+                    objetivos="Descripción del proyecto 2",
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1,  # Activo
+                    resumen="Resumen del proyecto 2",
+                    problematica="Problemática del proyecto 2"
+                )
             ]
             db.add_all(proyectos)
             db.commit()
@@ -90,8 +114,18 @@ def init_db():
         from app.modelos.cronograma import Cronograma
         if not db.query(Cronograma).first():
             cronogramas = [
-                Cronograma(nombre="Cronograma 1", descripcion="Descripción del cronograma 1"),
-                Cronograma(nombre="Cronograma 2", descripcion="Descripción del cronograma 2")
+                Cronograma(
+                    proyecto_id=1,
+                    fecha_creacion=datetime.now(),
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                ),
+                Cronograma(
+                    proyecto_id=2,
+                    fecha_creacion=datetime.now(),
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                )
             ]
             db.add_all(cronogramas)
             db.commit()
@@ -101,8 +135,22 @@ def init_db():
         from app.modelos.anexo import Anexo
         if not db.query(Anexo).first():
             anexos = [
-                Anexo(nombre="Anexo 1", descripcion="Descripción del anexo 1"),
-                Anexo(nombre="Anexo 2", descripcion="Descripción del anexo 2")
+                Anexo(
+                    nombre="Anexo 1",
+                    ruta_archivo="/ruta/anexo1.pdf",
+                    fecha_subida=datetime.now(),
+                    proyecto_id=1,
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                ),
+                Anexo(
+                    nombre="Anexo 2",
+                    ruta_archivo="/ruta/anexo2.pdf",
+                    fecha_subida=datetime.now(),
+                    proyecto_id=2,
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                )
             ]
             db.add_all(anexos)
             db.commit()
@@ -112,8 +160,24 @@ def init_db():
         from app.modelos.auditoria import Auditoria
         if not db.query(Auditoria).first():
             auditorias = [
-                Auditoria(nombre="Auditoria 1", descripcion="Descripción de la auditoria 1"),
-                Auditoria(nombre="Auditoria 2", descripcion="Descripción de la auditoria 2")
+                Auditoria(
+                    accion="Creación",
+                    tabla_afectada="proyectos",
+                    registro_id=1,
+                    usuario_id=1,
+                    fecha_accion=datetime.now(),
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                ),
+                Auditoria(
+                    accion="Actualización",
+                    tabla_afectada="proyectos",
+                    registro_id=2,
+                    usuario_id=1,
+                    fecha_accion=datetime.now(),
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                )
             ]
             db.add_all(auditorias)
             db.commit()
@@ -123,8 +187,20 @@ def init_db():
         from app.modelos.avance import Avance
         if not db.query(Avance).first():
             avances = [
-                Avance(nombre="Avance 1", descripcion="Descripción del avance 1"),
-                Avance(nombre="Avance 2", descripcion="Descripción del avance 2")
+                Avance(
+                    proyecto_id=1,
+                    fecha_avance=datetime.now(),
+                    descripcion="Descripción del avance 1",
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                ),
+                Avance(
+                    proyecto_id=2,
+                    fecha_avance=datetime.now(),
+                    descripcion="Descripción del avance 2",
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                )
             ]
             db.add_all(avances)
             db.commit()
@@ -134,8 +210,20 @@ def init_db():
         from app.modelos.cierre import Cierre
         if not db.query(Cierre).first():
             cierres = [
-                Cierre(nombre="Cierre 1", descripcion="Descripción del cierre 1"),
-                Cierre(nombre="Cierre 2", descripcion="Descripción del cierre 2")
+                Cierre(
+                    fecha_cierre=datetime.now(),
+                    observaciones="Observaciones del cierre 1",
+                    proyecto_id=1,
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                ),
+                Cierre(
+                    fecha_cierre=datetime.now(),
+                    observaciones="Observaciones del cierre 2",
+                    proyecto_id=2,
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                )
             ]
             db.add_all(cierres)
             db.commit()
@@ -155,9 +243,26 @@ def init_db():
         # Crear convocatorias
         from app.modelos.convocatoria import Convocatoria
         if not db.query(Convocatoria).first():
+            fecha_actual = datetime.now()
             convocatorias = [
-                Convocatoria(nombre="Convocatoria 1", descripcion="Descripción de la convocatoria 1"),
-                Convocatoria(nombre="Convocatoria 2", descripcion="Descripción de la convocatoria 2")
+                Convocatoria(
+                    tipo="Interna",
+                    fecha_inicio=fecha_actual,
+                    fecha_fin=fecha_actual + timedelta(days=30),
+                    fecha_inicio_ejecucion=fecha_actual + timedelta(days=31),
+                    fecha_fin_ejecucion=fecha_actual + timedelta(days=120),
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                ),
+                Convocatoria(
+                    tipo="Externa",
+                    fecha_inicio=fecha_actual,
+                    fecha_fin=fecha_actual + timedelta(days=60),
+                    fecha_inicio_ejecucion=fecha_actual + timedelta(days=61),
+                    fecha_fin_ejecucion=fecha_actual + timedelta(days=180),
+                    estado_id=1,  # Activo
+                    tipo_estado_id=1  # Activo
+                )
             ]
             db.add_all(convocatorias)
             db.commit()

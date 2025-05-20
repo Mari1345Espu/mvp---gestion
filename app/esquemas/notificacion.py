@@ -1,19 +1,24 @@
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 
 class NotificacionBase(BaseModel):
-    titulo: str
+    tipo: str
     mensaje: str
-    fecha_envio: datetime
-    usuario_id: int
-    estado_id: int
-    tipo_estado_id: int
+    proyecto_id: Optional[int] = None
 
 class NotificacionCreate(NotificacionBase):
-    pass
+    usuario_id: int
 
 class Notificacion(NotificacionBase):
     id: int
+    usuario_id: int
+    leida: bool
+    fecha_creacion: datetime
+    fecha_lectura: Optional[datetime] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+class NotificacionCount(BaseModel):
+    count: int

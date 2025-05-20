@@ -20,7 +20,7 @@ class Proyecto(Base):
     concepto_evaluacion_id = Column(Integer, ForeignKey('conceptos_evaluacion.id'))
     tipo_estado_id = Column(Integer, ForeignKey('tipos_estado.id'))
     problematica = Column(String)
-#    tipo_proyecto_id = Column(Integer, ForeignKey('tipos_proyecto.id'))
+    tipo_proyecto_id = Column(Integer, ForeignKey('tipos_proyecto.id'))
 
     # Relaciones
     convocatoria = relationship("Convocatoria", back_populates="proyectos")
@@ -29,7 +29,7 @@ class Proyecto(Base):
     extension = relationship("Extension", back_populates="proyectos")
     estado = relationship("Estado", back_populates="proyectos")
     tipo_estado = relationship("TipoEstado", back_populates="proyectos")
-    #tipo_proyecto = relationship("TipoProyecto", back_populates="proyectos")
+    tipo_proyecto = relationship("TipoProyecto", back_populates="proyectos")
     evaluador_externo = relationship("Usuario", back_populates="proyectos_evaluados")
     concepto_evaluacion = relationship("ConceptoEvaluacion", back_populates="proyectos")
 
@@ -51,4 +51,4 @@ class Proyecto(Base):
 
     impactos = relationship("Impacto", back_populates="proyecto")
 
-#    seguimientos = relationship("Seguimiento", back_populates="proyecto")
+    seguimientos = relationship("Seguimiento", back_populates="proyecto")
