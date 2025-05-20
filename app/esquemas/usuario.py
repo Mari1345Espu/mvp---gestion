@@ -14,6 +14,7 @@ class Usuario(UsuarioBase):
     rol_id: int
     estado_id: int
     tipo_estado_id: int
+    rol_nombre: str | None = None
 
     class Config:
         orm_mode = True

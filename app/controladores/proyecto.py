@@ -3,60 +3,81 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime, timedelta, date
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
 
-from app import esquemas, modelos
+from app import modelos
 from app.db.session import get_db
-from app.esquemas.proyecto import Proyecto, ProyectoCreate, ProyectoBase
-from app.modelos.proyecto import Proyecto
-from app.modelos.convocatoria import Convocatoria
 from app.core.seguridad import get_current_user
+from app.esquemas.proyecto import Proyecto, ProyectoCreate, ProyectoUpdate, DashboardResponse, ReporteProyecto
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/proyectos/", response_model=List[esquemas.Proyecto])
-def leer_proyectos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@router.get("/proyectos/", response_model=List[Proyecto])
+def get_proyectos(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: modelos.Usuario = Depends(get_current_user)
+):
     proyectos = db.query(modelos.Proyecto).offset(skip).limit(limit).all()
     return proyectos
 
-@router.get("/proyectos/{proyecto_id}", response_model=esquemas.Proyecto)
-def leer_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
-    proyecto = db.query(modelos.Proyecto).filter(modelos.Proyecto.id == proyecto_id).first()
-    if proyecto is None:
-        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-    return proyecto
-
-@router.post("/proyectos/", response_model=esquemas.Proyecto)
-def crear_proyecto(proyecto: esquemas.ProyectoCreate, db: Session = Depends(get_db)):
+@router.post("/proyectos/", response_model=Proyecto)
+def create_proyecto(
+    proyecto: ProyectoCreate,
+    db: Session = Depends(get_db),
+    current_user: modelos.Usuario = Depends(get_current_user)
+):
     db_proyecto = modelos.Proyecto(**proyecto.dict())
     db.add(db_proyecto)
     db.commit()
     db.refresh(db_proyecto)
     return db_proyecto
 
-@router.put("/proyectos/{proyecto_id}", response_model=esquemas.Proyecto)
-def actualizar_proyecto(proyecto_id: int, proyecto: esquemas.ProyectoCreate, db: Session = Depends(get_db)):
+@router.get("/proyectos/{proyecto_id}", response_model=Proyecto)
+def get_proyecto(
+    proyecto_id: int,
+    db: Session = Depends(get_db),
+    current_user: modelos.Usuario = Depends(get_current_user)
+):
+    proyecto = db.query(modelos.Proyecto).filter(modelos.Proyecto.id == proyecto_id).first()
+    if proyecto is None:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    return proyecto
+
+@router.put("/proyectos/{proyecto_id}", response_model=Proyecto)
+def update_proyecto(
+    proyecto_id: int,
+    proyecto: ProyectoUpdate,
+    db: Session = Depends(get_db),
+    current_user: modelos.Usuario = Depends(get_current_user)
+):
     db_proyecto = db.query(modelos.Proyecto).filter(modelos.Proyecto.id == proyecto_id).first()
     if db_proyecto is None:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-    for key, value in proyecto.dict().items():
+    
+    for key, value in proyecto.dict(exclude_unset=True).items():
         setattr(db_proyecto, key, value)
+    
     db.commit()
     db.refresh(db_proyecto)
     return db_proyecto
 
-@router.delete("/proyectos/{proyecto_id}", response_model=esquemas.Proyecto)
-def eliminar_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
-    db_proyecto = db.query(modelos.Proyecto).filter(modelos.Proyecto.id == proyecto_id).first()
-    if db_proyecto is None:
+@router.delete("/proyectos/{proyecto_id}")
+def delete_proyecto(
+    proyecto_id: int,
+    db: Session = Depends(get_db),
+    current_user: modelos.Usuario = Depends(get_current_user)
+):
+    proyecto = db.query(modelos.Proyecto).filter(modelos.Proyecto.id == proyecto_id).first()
+    if proyecto is None:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-    db.delete(db_proyecto)
+    
+    db.delete(proyecto)
     db.commit()
-    return db_proyecto
+    return {"message": "Proyecto eliminado exitosamente"}
 
-@router.get("/proyectos/dashboard", response_model=esquemas.DashboardResponse)
+@router.get("/proyectos/dashboard", response_model=DashboardResponse)
 async def get_dashboard(
     db: Session = Depends(get_db),
     current_user: modelos.Usuario = Depends(get_current_user)
@@ -117,7 +138,7 @@ async def get_dashboard(
         "proyectos_por_facultad": dict(proyectos_por_facultad)
     }
 
-@router.get("/proyectos/reporte", response_model=esquemas.ReporteProyecto)
+@router.get("/proyectos/reporte", response_model=ReporteProyecto)
 async def generar_reporte(
     fecha_inicio: Optional[datetime] = None,
     fecha_fin: Optional[datetime] = None,
@@ -156,62 +177,3 @@ async def generar_reporte(
         "avance_promedio": avance_promedio,
         "proyectos": proyectos
     }
-
-@router.get("/admin/proyectos", response_class=HTMLResponse)
-def listar_proyectos(request: Request, db: Session = Depends(get_db)):
-    proyectos = db.query(Proyecto).all()
-    convocatorias = db.query(Convocatoria).all()
-    return templates.TemplateResponse("admin/proyectos.html", {"request": request, "proyectos": proyectos, "convocatorias": convocatorias})
-
-@router.post("/admin/proyectos/crear")
-def crear_proyecto(
-    request: Request,
-    nombre: str = Form(...),
-    descripcion: str = Form(...),
-    fecha_inicio: date = Form(...),
-    fecha_fin: date = Form(...),
-    convocatoria_id: int = Form(...),
-    estado: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    proyecto = Proyecto(
-        nombre=nombre,
-        descripcion=descripcion,
-        fecha_inicio=fecha_inicio,
-        fecha_fin=fecha_fin,
-        convocatoria_id=convocatoria_id,
-        estado=estado
-    )
-    db.add(proyecto)
-    db.commit()
-    return RedirectResponse(url="/admin/proyectos", status_code=status.HTTP_303_SEE_OTHER)
-
-@router.post("/admin/proyectos/editar/{proyecto_id}")
-def editar_proyecto(
-    proyecto_id: int,
-    nombre: str = Form(...),
-    descripcion: str = Form(...),
-    fecha_inicio: date = Form(...),
-    fecha_fin: date = Form(...),
-    convocatoria_id: int = Form(...),
-    estado: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
-    if proyecto:
-        proyecto.nombre = nombre
-        proyecto.descripcion = descripcion
-        proyecto.fecha_inicio = fecha_inicio
-        proyecto.fecha_fin = fecha_fin
-        proyecto.convocatoria_id = convocatoria_id
-        proyecto.estado = estado
-        db.commit()
-    return RedirectResponse(url="/admin/proyectos", status_code=status.HTTP_303_SEE_OTHER)
-
-@router.post("/admin/proyectos/eliminar/{proyecto_id}")
-def eliminar_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
-    proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
-    if proyecto:
-        db.delete(proyecto)
-        db.commit()
-    return RedirectResponse(url="/admin/proyectos", status_code=status.HTTP_303_SEE_OTHER)

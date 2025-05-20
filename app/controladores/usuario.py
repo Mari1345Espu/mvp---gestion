@@ -136,3 +136,20 @@ async def actualizar_mi_perfil(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@router.get("/usuarios/me", response_model=esquemas.Usuario)
+def leer_usuario_actual(current_user: modelos.Usuario = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    # Devolver el usuario con el nombre del rol
+    return {
+        "id": current_user.id,
+        "nombre": current_user.nombre,
+        "correo": current_user.correo,
+        "telefono": current_user.telefono,
+        "foto": current_user.foto,
+        "rol_id": current_user.rol_id,
+        "estado_id": current_user.estado_id,
+        "tipo_estado_id": current_user.tipo_estado_id,
+        "rol_nombre": current_user.rol.nombre if current_user.rol else None
+    }

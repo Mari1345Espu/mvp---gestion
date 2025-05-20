@@ -3,29 +3,36 @@ from typing import List, Optional, Dict
 from datetime import datetime
 
 class ProyectoBase(BaseModel):
-    titulo: str
-    objetivos: str
-    convocatoria_id: int
-    grupo_investigacion_id: int
-    linea_investigacion_id: int
-    extension_id: int
-    estado_id: int
+    nombre: str
+    descripcion: str
     fecha_inicio: datetime
-    tipo_estado_id: int
-    resumen: str
-    evaluador_externo_id: int
-    concepto_evaluacion_id: int
-    cierre_id: int
-    problematica: str
+    fecha_fin: datetime
+    presupuesto: float
+    estado_id: int
+    facultad_id: int
+    convocatoria_id: Optional[int] = None
 
 class ProyectoCreate(ProyectoBase):
     pass
 
+class ProyectoUpdate(BaseModel):
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    fecha_inicio: Optional[datetime] = None
+    fecha_fin: Optional[datetime] = None
+    presupuesto: Optional[float] = None
+    estado_id: Optional[int] = None
+    facultad_id: Optional[int] = None
+    convocatoria_id: Optional[int] = None
+
 class Proyecto(ProyectoBase):
     id: int
+    fecha_creacion: datetime
+    fecha_actualizacion: Optional[datetime] = None
+    avance: float = 0.0
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class DashboardResponse(BaseModel):
     total_proyectos: int
@@ -44,4 +51,4 @@ class ReporteProyecto(BaseModel):
     proyectos: List[Proyecto]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

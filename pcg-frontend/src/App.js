@@ -1,101 +1,118 @@
-import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import Usuarios from './pages/Usuarios';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 import Roles from './pages/Roles';
 import Permisos from './pages/Permisos';
 import Estados from './pages/Estados';
 import Convocatorias from './pages/Convocatorias';
 import GrupoInvestigacion from './pages/GrupoInvestigacion';
-import Dashboard from './pages/Dashboard';
-import { AuthContext, AuthProvider } from './context/AuthContext';
-import RoleBasedRoute from './components/RoleBasedRoute';
+import Usuarios from './pages/Usuarios';
+import Navbar from './components/Navbar';
+import './App.css';
 
-function PrivateRoute({ children }) {
-  const { isAuthenticated } = useContext(AuthContext);
+// Componente para rutas protegidas
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{height: '100vh'}}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    );
+  }
+
   return isAuthenticated ? children : <Navigate to="/login" />;
-}
+};
 
-function App() {
-  const { auth, logout, isAuthenticated } = useContext(AuthContext);
+// Componente principal envuelto en el Router
+function AppContent() {
+  const { isAuthenticated } = useAuth();
 
   return (
-    <Router>
-      <nav className="navbar navbar-expand navbar-dark bg-dark">
-        <div className="container">
-          <Link className="navbar-brand" to="/">PCG Frontend</Link>
-          <div className="navbar-nav">
-            {!isAuthenticated && <Link className="nav-link" to="/login">Login</Link>}
-          {isAuthenticated && (
-              <>
-                <Link className="nav-link" to="/usuarios">Usuarios</Link>
-                <Link className="nav-link" to="/roles">Roles</Link>
-                <Link className="nav-link" to="/permisos">Permisos</Link>
-                <Link className="nav-link" to="/estados">Estados</Link>
-                <Link className="nav-link" to="/convocatorias">Convocatorias</Link>
-                <Link className="nav-link" to="/grupoinvestigacion">Grupos de Investigación</Link>
-                <Link className="nav-link" to="/">Dashboard</Link>
-                <button className="btn btn-link nav-link" onClick={logout}>Logout</button>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-      <div className="container mt-4">
+    <div className="app-container">
+      {isAuthenticated && <Navbar />}
+      <div className="content-container">
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          } />
-          <Route path="/usuarios" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI', 'Líder de Grupo']}>
-              <Usuarios />
-            </RoleBasedRoute>
-          } />
-          <Route path="/roles" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI']}>
-              <Roles />
-            </RoleBasedRoute>
-          } />
-          <Route path="/permisos" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI']}>
-              <Permisos />
-            </RoleBasedRoute>
-          } />
-          <Route path="/estados" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI']}>
-              <Estados />
-            </RoleBasedRoute>
-          } />
-          <Route path="/convocatorias" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI']}>
-              <Convocatorias />
-            </RoleBasedRoute>
-          } />
-          <Route path="/grupoinvestigacion" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI']}>
-              <GrupoInvestigacion />
-            </RoleBasedRoute>
-          } />
-          <Route path="/" element={
-            <RoleBasedRoute allowedRoles={['Administrador CTI', 'Líder de Grupo', 'Investigador', 'Evaluador']}>
-              <Dashboard />
-            </RoleBasedRoute>
-          } />
-          {/* Add more routes here */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/roles" 
+            element={
+              <ProtectedRoute>
+                <Roles />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/permisos" 
+            element={
+              <ProtectedRoute>
+                <Permisos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/estados" 
+            element={
+              <ProtectedRoute>
+                <Estados />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/convocatorias" 
+            element={
+              <ProtectedRoute>
+                <Convocatorias />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/grupoinvestigacion" 
+            element={
+              <ProtectedRoute>
+                <GrupoInvestigacion />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/usuarios" 
+            element={
+              <ProtectedRoute>
+                <Usuarios />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
-    </Router>
+    </div>
   );
 }
 
-export default function AppWrapper() {
+// Componente raíz que envuelve todo con los providers necesarios
+function App() {
   return (
     <AuthProvider>
-      <App />
+      <Router>
+        <AppContent />
+      </Router>
     </AuthProvider>
   );
 }
+
+export default App;
