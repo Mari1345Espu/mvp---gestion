@@ -2,7 +2,7 @@
 
 Este sistema permite la gestión integral de proyectos de Ciencia, Tecnología e Innovación (CTI), facilitando el seguimiento, evaluación y control de los mismos. La plataforma permite múltiples roles (Administrador CTI, Investigador, Líder de grupo, Evaluador externo, Evaluador asesor, Superadministrador).
 
-## 🚀 Características principales
+##  Características principales
 
 - Registro y autenticación de usuarios con roles personalizados.
 - Gestión de proyectos de investigación.
@@ -48,7 +48,7 @@ npm install
 npm start
 ```
 
-## 🧑‍💻 Roles y funcionalidades
+##  Roles y funcionalidades
 
 | Rol               | Funcionalidades principales                                                                 |
 |-------------------|---------------------------------------------------------------------------------------------|
@@ -59,6 +59,6 @@ npm start
 | Administrador CTI  | Administra usuarios, convoca proyectos, controla estados.                                  |
 | Superadministrador | Accede a todos los módulos y gestiona todo el sistema.                                     |
 
-## 📝 Licencia
+##  Licencia
 
 Este proyecto es de uso académico para la Universidad de Cundinamarca. Todos los derechos reservados.
