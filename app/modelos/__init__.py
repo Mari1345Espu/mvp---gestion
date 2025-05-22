@@ -1,3 +1,4 @@
+from .base import Base
 from .usuario import Usuario
 from .rol import Rol
 from .estado import Estado
@@ -25,4 +26,37 @@ from .programa import Programa
 from .impacto import Impacto
 from .seguimiento import Seguimiento
 from .tipo_proyecto import TipoProyecto
+from .reporte import Reporte
 # Añade aquí más importaciones de modelos según sea necesario
+
+__all__ = [
+    'Base',
+    'Usuario',
+    'Rol',
+    'Estado',
+    'TipoEstado',
+    'Facultad',
+    'Extension',
+    'Proyecto',
+    'Cierre',
+    'Evaluacion',
+    'Destino',
+    'Convocatoria',
+    'ConceptoEvaluacion',
+    'Cronograma',
+    'Recurso',
+    'Participante',
+    'Avance',
+    'Producto',
+    'Tarea',
+    'Auditoria',
+    'Anexo',
+    'LineaInvestigacion',
+    'GrupoInvestigacion',
+    'Notificacion',
+    'Programa',
+    'Impacto',
+    'Seguimiento',
+    'TipoProyecto',
+    'Reporte'
+]

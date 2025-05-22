@@ -24,10 +24,23 @@ class Usuario(Base):
     estado = relationship("Estado", back_populates="usuarios")
     tipo_estado = relationship("TipoEstado", back_populates="usuarios")
 
+    # Relaciones con proyectos
     proyectos_evaluados = relationship("Proyecto", back_populates="evaluador_externo")
+    proyectos_asesorados = relationship("Proyecto", back_populates="asesor", foreign_keys="[Proyecto.asesor_id]")
+    productos_aprobados = relationship("Producto", back_populates="aprobado_por")
+    
+    # Relaciones con grupos y auditoría
     auditorias = relationship("Auditoria", back_populates="usuario")
-
     grupos_liderados = relationship("GrupoInvestigacion", back_populates="lider")
-
+    
+    # Relaciones con notificaciones y evaluaciones
     notificaciones = relationship("Notificacion", back_populates="usuario")
-    #impactos = relationship("Impacto", back_populates="usuario")
+    conceptos_evaluacion = relationship("ConceptoEvaluacion", back_populates="evaluador")
+    
+    # Relaciones con avances y recursos
+    avances_aprobados = relationship("Avance", back_populates="aprobado_por")
+    recursos_aprobados = relationship("Recurso", back_populates="aprobado_por")
+    
+    # Relaciones con tareas
+    tareas_aprobadas = relationship("Tarea", back_populates="aprobado_por", foreign_keys="[Tarea.aprobado_por_id]")
+    tareas_asignadas = relationship("Tarea", back_populates="responsable", foreign_keys="[Tarea.responsable_id]")

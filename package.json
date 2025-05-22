@@ -1,5 +1,11 @@
 {
   "devDependencies": {
-    "react-scripts": "^5.0.1"
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.2",
+    "react-scripts": "^5.0.1",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "jwt-decode": "^4.0.0"
   }
 }

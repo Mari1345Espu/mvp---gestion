@@ -8,23 +8,46 @@ from app.controladores import (
     producto, tarea, estado, tipo_estado, lineainvestigacion, 
     anexo, cierre, destino, extension, auditoria, evaluacion, 
     facultad, programa, impacto, notificacion, reporte,
-    auth
+    auth, dashboard
 )
 from app.db.session import get_db
 from app import modelos
 from app.core.seguridad import get_current_user
 from fastapi.responses import JSONResponse
+from .config import settings
+from .utilidades.logging import setup_logging, RequestLogger
+from .utilidades.monitoring import setup_monitoring
+from .database import engine
+from app.config import get_config
+from app.db.base import Base
 
-app = FastAPI(title="Sistema de Gestión de Investigación")
+# Configurar logging
+setup_logging()
 
-# Configuración de CORS
+# Obtener la configuración
+config = get_config()
+
+# Crear aplicación
+app = FastAPI(
+    title="API de Gestión",
+    description="API para el sistema de gestión de extensiones",
+    version="1.0.0"
+)
+
+# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=config.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Agregar middleware de logging
+app.add_middleware(RequestLogger)
+
+# Configurar monitoreo
+db_monitor = setup_monitoring(app, engine)
 
 # Incluir rutas
 app.include_router(auth.router, prefix="/api/v1", tags=["Autenticación"])
@@ -49,10 +72,15 @@ app.include_router(programa.router, prefix="/api/v1", tags=["Programas"])
 app.include_router(impacto.router, prefix="/api/v1", tags=["Impactos"])
 app.include_router(notificacion.router, prefix="/api/v1", tags=["Notificaciones"])
 app.include_router(reporte.router, prefix="/api/v1", tags=["Reportes"])
+app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
 
 @app.get("/")
 async def root():
-    return {"message": "API is running"}
+    """Endpoint de salud."""
+    return {
+        "status": "ok",
+        "version": "1.0.0"
+    }
 
 @app.get("/api/v1/dashboard")
 async def get_dashboard_data(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
@@ -88,6 +116,41 @@ async def get_dashboard_data(current_user=Depends(get_current_user), db: Session
             status_code=500,
             content={"detail": f"Error al obtener datos del dashboard: {str(e)}"}
         )
+
+# Crear las tablas en el orden correcto
+def init_db():
+    # Primero las tablas base sin dependencias
+    Base.metadata.create_all(bind=engine, tables=[modelos.Rol.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Estado.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.TipoEstado.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Facultad.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Programa.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.LineaInvestigacion.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.GrupoInvestigacion.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.TipoProyecto.__table__])
+    
+    # Luego las tablas con dependencias simples
+    Base.metadata.create_all(bind=engine, tables=[modelos.Usuario.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Proyecto.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Tarea.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Avance.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Recurso.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Producto.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Anexo.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Auditoria.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Notificacion.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Reporte.__table__])
+    
+    # Finalmente las tablas con múltiples dependencias
+    Base.metadata.create_all(bind=engine, tables=[modelos.Cierre.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Evaluacion.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Destino.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Extension.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Impacto.__table__])
+    Base.metadata.create_all(bind=engine, tables=[modelos.Seguimiento.__table__])
+
+# Inicializar la base de datos
+init_db()
 
 if __name__ == "__main__":
     import uvicorn
